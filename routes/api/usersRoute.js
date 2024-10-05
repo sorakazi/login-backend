@@ -7,6 +7,10 @@ import {
 } from "../../controller/usersController.js";
 import { authenticateToken } from "../../middlewares/authenticateToken.js";
 import { httpError } from "../../helpers/httpError.js";
+import {
+  signupValidation,
+  loginValidation,
+} from "../../validations/validation.js"; // Import validations
 
 const router = express.Router();
 
