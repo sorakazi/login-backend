@@ -4,6 +4,7 @@ import {
   signupUser,
   loginUser,
   logoutUser,
+  deleteUser, // import the deleteUser controller
 } from "../../controller/usersController.js";
 import { authenticateToken } from "../../middlewares/authenticateToken.js";
 import { httpError } from "../../helpers/httpError.js";
@@ -59,6 +60,22 @@ router.post("/login", async (req, res, next) => {
 router.get("/logout", authenticateToken, async (req, res, next) => {
   try {
     await ctrlWrapper(logoutUser)(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /delete/:id
+ * Route for deleting a user by ID (requires authentication)
+ * @url http://localhost:3000/api/users/delete/:id
+ * @header Authorization: Bearer <token>
+ */
+router.delete("/delete/:id", authenticateToken, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    await ctrlWrapper(deleteUser)(id); // pass user ID to deleteUser function
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     next(error);
   }

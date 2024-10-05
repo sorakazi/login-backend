@@ -117,4 +117,18 @@ const logoutUser = async (req, res, next) => {
   }
 };
 
-export { signupUser, loginUser, logoutUser }; // Ensure logoutUser is exported
+// Delete user endpoint
+const deleteUser = async (id) => {
+  try {
+    // Check if the user exists
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
+      throw httpError(404, "User not found");
+    }
+    return { message: "User deleted successfully" };
+  } catch (error) {
+    throw httpError(500, "An error occurred while deleting the user");
+  }
+};
+
+export { signupUser, loginUser, logoutUser, deleteUser };
