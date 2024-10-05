@@ -10,39 +10,58 @@ import { httpError } from "../../helpers/httpError.js";
 import {
   signupValidation,
   loginValidation,
-} from "../../validations/validation.js"; // Import validations
+} from "../../validations/validation.js";
 
 const router = express.Router();
 
-/* POST: // http://localhost:3000/api/users/signup
-{
-  "email": "example@example.com",
-  "password": "examplepassword"
-}~
-*/
+/**
+ * POST /signup
+ * Route for user registration
+ * @url http://localhost:3000/api/users/signup
+ * @body { email: "example@example.com", password: "examplepassword" }
+ */
 router.post("/signup", async (req, res, next) => {
-  const { error } = signupValidation.validate(req.body);
-  if (error) {
-    return next(httpError(400, error.details[0].message));
+  try {
+    const { error } = signupValidation.validate(req.body);
+    if (error) {
+      throw httpError(400, error.details[0].message);
+    }
+    await ctrlWrapper(signupUser)(req, res, next);
+  } catch (error) {
+    next(error);
   }
-  return ctrlWrapper(signupUser)(req, res, next);
 });
 
-/* POST: // http://localhost:3000/api/users/login
-{
-  "email": "example@example.com",app.use
-  "password": "examplepassword"
-}
-*/
+/**
+ * POST /login
+ * Route for user login
+ * @url http://localhost:3000/api/users/login
+ * @body { email: "example@example.com", password: "examplepassword" }
+ */
 router.post("/login", async (req, res, next) => {
-  const { error } = loginValidation.validate(req.body);
-  if (error) {
-    return next(httpError(400, error.details[0].message));
+  try {
+    const { error } = loginValidation.validate(req.body);
+    if (error) {
+      throw httpError(400, error.details[0].message);
+    }
+    await ctrlWrapper(loginUser)(req, res, next);
+  } catch (error) {
+    next(error);
   }
-  return ctrlWrapper(loginUser)(req, res, next);
 });
 
-/* GET: // http://localhost:3000/api/users/logout */
-router.get("/logout", authenticateToken, ctrlWrapper(logoutUser));
+/**
+ * GET /logout
+ * Route for user logout (requires authentication)
+ * @url http://localhost:3000/api/users/logout
+ * @header Authorization: Bearer <token>
+ */
+router.get("/logout", authenticateToken, async (req, res, next) => {
+  try {
+    await ctrlWrapper(logoutUser)(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
 
 export { router };
