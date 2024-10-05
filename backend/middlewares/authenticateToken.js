@@ -6,6 +6,13 @@ import "dotenv/config";
 const { SECRET_KEY } = process.env;
 
 const authenticateToken = async (req, res, next) => {
+  // Check if SECRET_KEY is defined
+  if (!SECRET_KEY) {
+    return next(
+      httpError(500, "Secret key is missing in environment variables")
+    );
+  }
+
   try {
     // Extract the authorization header
     const { authorization = "" } = req.headers;

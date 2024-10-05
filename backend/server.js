@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { app } from "./app.js";
 
 dotenv.config();
+console.log("Environment Variables:", process.env); // Debugging line
 
 const { DB_HOST, PORT = 3000 } = process.env;
 
