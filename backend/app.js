@@ -1,6 +1,4 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env" }); // Load environment variables
-
 import express from "express";
 import logger from "morgan";
 import cors from "cors";
@@ -8,21 +6,31 @@ import { router as usersRoute } from "./routes/api/usersRoute.js";
 
 // Load environment variables from .env file
 dotenv.config({ path: "./.env" });
-console.log("Loaded SECRET_KEY:", process.env.SECRET_KEY);
-console.log("Environment Variables Loaded:", process.env);
 
+const app = express();
+
+// Check for SECRET_KEY in environment variables
 if (!process.env.SECRET_KEY) {
   throw new Error("SECRET_KEY is missing in the environment variables");
 }
 
-const app = express();
+console.log("Loaded SECRET_KEY:", process.env.SECRET_KEY);
+console.log("Environment Variables Loaded:", process.env);
 
 // Set up logger format based on environment (development vs. production)
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
+// CORS options
+const corsOptions = {
+  origin: "http://localhost:3000", // Change to your frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // Enable cookies or credentials to be sent with requests
+};
+
 // Middleware
 app.use(logger(formatsLogger)); // Logging middleware
-app.use(cors()); // Enable CORS for cross-origin requests
+app.use(cors(corsOptions)); // Enable CORS with specific options
 app.use(express.json()); // Parse incoming JSON requests
 
 // Serve static files from the public directory

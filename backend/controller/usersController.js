@@ -110,8 +110,8 @@ const logoutUser = async (req, res, next) => {
     // Update the user's token in the database to null
     await User.findByIdAndUpdate(id, { token: null });
 
-    // Send the success response
-    res.status(204).send(); // No content
+    // Send the success response with a message
+    res.status(200).json({ message: "You have logged out" });
   } catch (error) {
     next(error); // Pass error to next middleware
   }
