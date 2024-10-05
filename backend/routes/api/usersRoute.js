@@ -5,12 +5,12 @@ import {
   loginUser,
   logoutUser,
 } from "../../controller/usersController.js";
-import { authenticateToken } from "../../backend/middlewares/authenticateToken.js";
+import { authenticateToken } from "../../middlewares/authenticateToken.js";
 import { httpError } from "../../helpers/httpError.js";
 import {
   signupValidation,
   loginValidation,
-} from "../../backend/validations/validation.js"; // Import validations
+} from "../../validations/validation.js"; // Import validations
 
 const router = express.Router();
 
