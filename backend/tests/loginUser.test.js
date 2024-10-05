@@ -1,5 +1,5 @@
 import request from "supertest";
-import { app } from "../app.js";
+import { app } from "../../app.js";
 import { User } from "../models/usersModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
