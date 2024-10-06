@@ -1,13 +1,12 @@
-// src/components/SignUp.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const SignUp = ({ onSignUp }) => {
-  // Capitalized 'SignUp'
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,15 +15,18 @@ const SignUp = ({ onSignUp }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:3000/signup",
+        "http://localhost:5000/api/users/signup", // Corrected URL
         formData
       );
-      onSignUp(response.data); // Passing the response data to onSignUp
+      onSignUp(response.data);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Error signing up");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,22 +39,27 @@ const SignUp = ({ onSignUp }) => {
       <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          value={formData.username}
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
           onChange={handleChange}
           required
+          autoComplete="email"
         />
         <input
           type="password"
           name="password"
           placeholder="Password"
-          value={formData.password}
+          value={formData.password.replace(/./g, "*")} // Mask password input with asterisks
           onChange={handleChange}
           required
+          autoComplete="new-password"
+          style={{ caretColor: "transparent" }} // Hide caret
         />
-        <button type="submit">Sign Up</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing Up..." : "Sign Up"}
+        </button>
         <button type="button" onClick={handleBack}>
           Back
         </button>

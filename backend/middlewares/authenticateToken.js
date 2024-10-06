@@ -15,12 +15,14 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     // Extract the authorization header
-    const { authorization = "" } = req.headers;
+    const authorization = req.headers.authorization || "";
     const [bearer, token] = authorization.split(" ");
 
     // Ensure Bearer token format
     if (bearer !== "Bearer" || !token) {
-      throw httpError(401, "Not authorized: Invalid or missing token format");
+      return next(
+        httpError(401, "Not authorized: Invalid or missing token format")
+      );
     }
 
     // Verify the token
@@ -29,7 +31,7 @@ const authenticateToken = async (req, res, next) => {
 
     // Ensure the user exists and token matches
     if (!user || user.token !== token) {
-      throw httpError(401, "Not authorized: Invalid or expired token");
+      return next(httpError(401, "Not authorized: Invalid or expired token"));
     }
 
     // Attach the user object to the request
@@ -37,13 +39,14 @@ const authenticateToken = async (req, res, next) => {
     next();
   } catch (error) {
     // Handle different JWT error types
-    if (error.name === "JsonWebTokenError") {
-      return next(httpError(401, "Not authorized: Invalid token"));
+    switch (error.name) {
+      case "JsonWebTokenError":
+        return next(httpError(401, "Not authorized: Invalid token"));
+      case "TokenExpiredError":
+        return next(httpError(401, "Not authorized: Token expired"));
+      default:
+        return next(httpError(401, "Not authorized"));
     }
-    if (error.name === "TokenExpiredError") {
-      return next(httpError(401, "Not authorized: Token expired"));
-    }
-    next(httpError(401, "Not authorized"));
   }
 };
 

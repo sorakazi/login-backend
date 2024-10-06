@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const homePage = () => {
+const HomePage = () => {
   const navigate = useNavigate();
 
   const handleSignUpRedirect = () => {
@@ -23,4 +23,4 @@ const homePage = () => {
   );
 };
 
-export default homePage;
+export default HomePage;

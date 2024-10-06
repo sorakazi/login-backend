@@ -1,6 +1,4 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env" }); // Load environment variables
-
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { User } from "../models/users.js";
@@ -12,10 +10,13 @@ import { httpError } from "../helpers/httpError.js";
 import { v4 as uuid4 } from "uuid";
 
 // Load environment variables
+dotenv.config({ path: "./.env" });
 const { SECRET_KEY } = process.env;
 
 if (!SECRET_KEY) {
-  throw httpError(500, "Secret key is missing in environment variables");
+  throw httpError(500, {
+    message: "Secret key is missing in environment variables",
+  });
 }
 
 // Signup endpoint
@@ -26,37 +27,38 @@ const signupUser = async (req, res, next) => {
     // Validate the signup data
     const { error } = signupValidation.validate(req.body);
     if (error) {
-      throw httpError(400, error.message);
+      return next(httpError(400, { message: error.details[0].message }));
     }
 
     // Check for email conflict
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      throw httpError(409, "Email already in use");
+      return next(httpError(409, { message: "Email already in use" }));
     }
-
-    // Hash the user's password
-    const hashPassword = await bcrypt.hash(password, 10);
 
     // Create a verification token
     const verificationToken = uuid4();
 
-    // Create a new user
+    // Create a new user with hashed password
     const newUser = await User.create({
       email,
-      password: hashPassword,
+      password, // The password will be hashed in the pre-save hook
       verificationToken,
     });
 
     // Send the success response
     res.status(201).json({
-      user: {
-        email: newUser.email,
-        verificationToken,
+      success: true,
+      data: {
+        user: {
+          email: newUser.email,
+          verificationToken,
+        },
       },
     });
   } catch (error) {
-    next(error); // Pass error to next middleware
+    console.error("Signup error:", error);
+    next(httpError(500, { message: "Internal Server Error" }));
   }
 };
 
@@ -68,19 +70,23 @@ const loginUser = async (req, res, next) => {
     // Validate the login data
     const { error } = loginValidation.validate(req.body);
     if (error) {
-      throw httpError(400, error.message);
+      return next(httpError(400, { message: error.details[0].message }));
     }
 
     // Check if the user exists
     const user = await User.findOne({ email });
     if (!user) {
-      throw httpError(401, "Email or password is incorrect");
+      return next(
+        httpError(401, { message: "Email or password is incorrect" })
+      );
     }
 
     // Validate the password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw httpError(401, "Email or password is incorrect");
+      return next(
+        httpError(401, { message: "Email or password is incorrect" })
+      );
     }
 
     // Generate a JWT token
@@ -92,42 +98,52 @@ const loginUser = async (req, res, next) => {
 
     // Send the success response
     res.status(200).json({
-      token,
-      user: {
-        email: user.email,
+      success: true,
+      data: {
+        token,
+        user: { email: user.email },
       },
     });
   } catch (error) {
-    next(error); // Pass error to next middleware
+    console.error("Login error:", error);
+    next(httpError(500, { message: "Internal Server Error" }));
   }
 };
 
 // Logout endpoint
 const logoutUser = async (req, res, next) => {
   try {
-    const { id } = req.user; // Assuming the user ID is stored in req.user
+    const { id } = req.user;
 
     // Update the user's token in the database to null
     await User.findByIdAndUpdate(id, { token: null });
 
-    // Send the success response with a message
-    res.status(200).json({ message: "You have logged out" });
+    // Send the success response
+    res.status(200).json({ success: true, message: "You have logged out" });
   } catch (error) {
-    next(error); // Pass error to next middleware
+    console.error("Logout error:", error);
+    next(httpError(500, { message: "Internal Server Error" }));
   }
 };
 
 // Delete user endpoint
-const deleteUser = async (id) => {
+const deleteUser = async (req, res, next) => {
   try {
-    // Check if the user exists
+    const { id } = req.params;
+
+    // Check if the user exists and delete the user
     const user = await User.findByIdAndDelete(id);
     if (!user) {
-      throw httpError(404, "User not found");
+      return next(httpError(404, { message: "User not found" }));
     }
-    return { message: "User deleted successfully" };
+
+    // Send success response
+    res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully" });
   } catch (error) {
-    throw httpError(500, "An error occurred while deleting the user");
+    console.error("Delete user error:", error);
+    next(httpError(500, { message: "Internal Server Error" }));
   }
 };
 

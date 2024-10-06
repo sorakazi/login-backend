@@ -17,7 +17,7 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/users/login",
+        "http://localhost:5000/api/users/login",
         formData
       );
       onLogin(response.data);
@@ -42,6 +42,7 @@ const Login = ({ onLogin }) => {
           value={formData.username}
           onChange={handleChange}
           required
+          autoComplete="username" // Adding autocomplete attribute
         />
         <input
           type="password"
@@ -50,6 +51,7 @@ const Login = ({ onLogin }) => {
           value={formData.password}
           onChange={handleChange}
           required
+          autoComplete="current-password" // Adding autocomplete attribute
         />
         <button type="submit">Login</button>
         <button type="button" onClick={handleBack}>
