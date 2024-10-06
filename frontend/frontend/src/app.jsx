@@ -13,22 +13,30 @@ import SignUp from "./components/SignUp";
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error message
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSignUp = async (userData) => {
     setLoading(true);
     setError("");
     try {
+      // Log the user data being sent
+      console.log("Signing up with data:", userData);
+
       const response = await axios.post(
         "http://localhost:5000/api/users/signup",
         userData
       );
+
+      // Log the successful response
       setUser(response.data);
       console.log("Sign Up Successful:", response.data);
     } catch (error) {
-      setError(error.response ? error.response.data.message : error.message);
-      console.error("Error during sign up:", error);
+      // Log the complete error response for better debugging
+      console.error("Error details:", error.response);
+
+      // Set the error message for the user
+      setError(error.response?.data.message || "Sign up failed");
     } finally {
       setLoading(false);
     }
@@ -45,7 +53,7 @@ const App = () => {
       setUser(response.data);
       console.log("Login Successful:", response.data);
     } catch (error) {
-      setError(error.response ? error.response.data.message : error.message);
+      setError(error.response?.data.message || "Login failed");
       console.error("Error during login:", error);
     } finally {
       setLoading(false);
@@ -92,7 +100,7 @@ const App = () => {
             user ? (
               <Dashboard user={user} onLogout={handleLogout} />
             ) : (
-              <Navigate to="/" /> // Redirect to home if not logged in
+              <Navigate to="/" replace /> // Redirect to home if not logged in
             )
           }
         />

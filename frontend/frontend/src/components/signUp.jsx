@@ -16,12 +16,13 @@ const SignUp = ({ onSignUp }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null); // Reset error state on new submission
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/users/signup", // Corrected URL
+        "http://localhost:5000/api/users/signup",
         formData
       );
-      onSignUp(response.data);
+      onSignUp(response.data); // Handle successful signup
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Error signing up");
@@ -31,7 +32,7 @@ const SignUp = ({ onSignUp }) => {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/"); // Go back to home
   };
 
   return (
@@ -51,7 +52,7 @@ const SignUp = ({ onSignUp }) => {
           type="password"
           name="password"
           placeholder="Password"
-          value={formData.password.replace(/./g, "*")} // Mask password input with asterisks
+          value={formData.password}
           onChange={handleChange}
           required
           autoComplete="new-password"
@@ -63,7 +64,8 @@ const SignUp = ({ onSignUp }) => {
         <button type="button" onClick={handleBack}>
           Back
         </button>
-        {error && <p>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}{" "}
+        {/* Display error message in red */}
       </form>
     </div>
   );
