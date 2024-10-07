@@ -66,6 +66,7 @@ const SignUp = ({ onSignUp }) => {
         </button>
         {error && <p style={{ color: "red" }}>{error}</p>}{" "}
         {/* Display error message in red */}
+        {loading && <p>Loading...</p>} {/* Display loading message */}
       </form>
     </div>
   );

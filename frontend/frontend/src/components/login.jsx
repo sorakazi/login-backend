@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
@@ -37,9 +37,9 @@ const Login = ({ onLogin }) => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          name="username"
-          placeholder="Username"
-          value={formData.username}
+          name="email" // Corrected to "email"
+          placeholder="Email Address"
+          value={formData.email} // Corrected to use formData.email
           onChange={handleChange}
           required
           autoComplete="username" // Adding autocomplete attribute

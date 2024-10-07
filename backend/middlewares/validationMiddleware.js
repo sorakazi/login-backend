@@ -2,7 +2,7 @@
 import {
   signupValidation,
   loginValidation,
-} from "../validations/validation.js"; // Update the import path
+} from "../validations/validation.js"; // Ensure this path is correct
 
 // Validation middleware for signup
 export const validateSignup = (req, res, next) => {

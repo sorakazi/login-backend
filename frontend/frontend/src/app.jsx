@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -12,7 +12,10 @@ import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 
 const App = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null; // Load user from localStorage
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,23 +23,19 @@ const App = () => {
     setLoading(true);
     setError("");
     try {
-      // Log the user data being sent
-      console.log("Signing up with data:", userData);
+      console.log("Sending sign-up data:", userData);
 
       const response = await axios.post(
         "http://localhost:5000/api/users/signup",
         userData
       );
 
-      // Log the successful response
       setUser(response.data);
-      console.log("Sign Up Successful:", response.data);
+      console.log("Sign-up successful, user data:", response.data);
     } catch (error) {
-      // Log the complete error response for better debugging
-      console.error("Error details:", error.response);
-
-      // Set the error message for the user
-      setError(error.response?.data.message || "Sign up failed");
+      console.error("Sign-up failed, error details:", error.response);
+      const errorMessage = error.response?.data.message || "Sign-up failed";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,15 +45,19 @@ const App = () => {
     setLoading(true);
     setError("");
     try {
+      console.log("Sending login data:", userData);
+
       const response = await axios.post(
         "http://localhost:5000/api/users/login",
         userData
       );
+
       setUser(response.data);
-      console.log("Login Successful:", response.data);
+      console.log("Login successful, user data:", response.data);
     } catch (error) {
-      setError(error.response?.data.message || "Login failed");
-      console.error("Error during login:", error);
+      console.error("Login failed, error details:", error.response);
+      const errorMessage = error.response?.data.message || "Login failed";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,6 +68,7 @@ const App = () => {
       console.error("No token found, cannot log out.");
       return;
     }
+
     try {
       await axios.get("http://localhost:5000/api/users/logout", {
         headers: {
@@ -72,11 +76,20 @@ const App = () => {
         },
       });
       setUser(null);
-      console.log("Logout Successful");
+      localStorage.removeItem("user"); // Clear user from localStorage
+      console.log("Logout successful");
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user)); // Save user to localStorage
+    } else {
+      localStorage.removeItem("user"); // Clear user from localStorage
+    }
+  }, [user]);
 
   return (
     <Router>
@@ -100,7 +113,7 @@ const App = () => {
             user ? (
               <Dashboard user={user} onLogout={handleLogout} />
             ) : (
-              <Navigate to="/" replace /> // Redirect to home if not logged in
+              <Navigate to="/" replace />
             )
           }
         />
