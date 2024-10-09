@@ -1,60 +1,67 @@
-import dotenv from "dotenv";
 import express from "express";
-import logger from "morgan";
-import cors from "cors";
-import helmet from "helmet";
-import { router as usersRoute } from "./routes/api/usersRoute.js";
-
-// Load environment variables from .env file
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import authRoutes from "./routes/api/usersRoute.js";
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+import { setupSwagger } from "./swagger.js";
+// Load environment variables
 dotenv.config();
 
-// Check for required environment variables
-const requiredEnvVars = ["DB_HOST", "SECRET_KEY", "FRONTEND_URL", "PORT"];
-requiredEnvVars.forEach((varName) => {
-  if (!process.env[varName]) {
-    throw new Error(`${varName} is missing in the environment variables`);
-  }
-});
-
-// Debugging output
-console.log("Environment Variables Loaded:");
-console.log("PORT:", process.env.PORT);
-console.log("DB_HOST:", process.env.DB_HOST);
-console.log("SECRET_KEY:", process.env.SECRET_KEY);
-console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-
 const app = express();
+app.use(express.json());
+setupSwagger(app);
 
-// Middleware
-const formatsLogger = app.get("env") === "development" ? "dev" : "short";
-
-const corsOptions = {
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
+// Swagger documentation setup
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0", // OpenAPI version
+    info: {
+      title: "SlimMON",
+      version: "1.0.0",
+      description: "API documentation for my application dsdsdsdds",
+    },
+    servers: [
+      {
+        url: `http://localhost:${process.env.PORT || 8081}`, // API URL
+      },
+    ],
+  },
+  apis: ["./routes/*.js"], // Adjust this path based on where your API documentation is
 };
 
-app.use(logger(formatsLogger));
-app.use(cors(corsOptions));
-app.use(helmet());
-app.use(express.json());
+// Initialize swagger-jsdoc
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-// Serve static files from the public directory
-app.use(express.static("public"));
+// Serve Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// API routes
-app.use("/api/users", usersRoute);
+// Define routes
+app.use("/auth", authRoutes);
 
-// Handle 404 errors for undefined routes
-app.use((_req, res) => {
-  res.status(404).json({ message: "Not found" });
-});
+// Connect to MongoDB
+const connectToDatabase = async () => {
+  try {
+    await mongoose.connect(process.env.DB_HOST);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+    process.exit(1); // Exit the process if the database connection fails
+  }
+};
 
-// Global error handling middleware
-app.use((err, _req, res, _next) => {
-  const { status = 500, message = "Server error" } = err;
-  res.status(status).json({ message });
-});
+// Start the server
+const startServer = async () => {
+  await connectToDatabase();
 
-export { app };
+  const PORT = process.env.PORT || 8081;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+};
+
+// Initialize server
+startServer();
+
+// Export the app for testing or further use
+export default app;

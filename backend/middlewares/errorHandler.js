@@ -24,7 +24,7 @@ app.delete("/user/:id", authenticateToken, deleteUser);
 app.use(errorHandler);
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3013;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

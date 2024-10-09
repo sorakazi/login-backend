@@ -15,32 +15,68 @@ import {
 const router = express.Router();
 
 /**
- * POST /signup
- * Route for user registration
- * @url http://localhost:5000/api/users/signup
+ * @swagger
+ * /auth/signup:
+ *   post:
+ *     summary: Signup a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created
+ *       400:
+ *         description: Bad request
  */
 router.post(
   "/signup",
   validateSignup,
-  ctrlWrapper(async (req, res, next) => {
-    await signupUser(req, res, next);
+  ctrlWrapper(async (req, res) => {
+    await signupUser(req, res);
     res.status(201).json({ message: "User registered successfully" });
   })
 );
 
 /**
- * POST /login
- * Route for user login
- * @url http://localhost:5000/api/users/login
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User logged in
+ *       404:
+ *         description: User not found
  */
 router.post(
   "/login",
   validateLogin,
-  ctrlWrapper(async (req, res, next) => {
-    const userData = await loginUser(req, res, next);
+  ctrlWrapper(async (req, res) => {
+    const userData = await loginUser(req, res);
 
     if (!userData || !userData.token) {
-      throw httpError(401, "Authentication failed. No token generated.");
+      throw new httpError(401, "Authentication failed. No token generated.");
     }
 
     res.status(200).json({
@@ -51,37 +87,54 @@ router.post(
 );
 
 /**
- * GET /logout
- * Route for user logout (requires authentication)
- * @url http://localhost:5000/api/users/logout
+ * @swagger
+ * /auth/logout:
+ *   get:
+ *     summary: Logout a user
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: User logged out
  */
 router.get(
   "/logout",
   authenticateToken,
-  ctrlWrapper(async (req, res, next) => {
-    await logoutUser(req, res, next);
+  ctrlWrapper(async (req, res) => {
+    await logoutUser(req, res);
     res.status(200).json({ message: "User logged out successfully" });
   })
 );
 
 /**
- * DELETE /delete/:id
- * Route for deleting a user by ID (requires authentication)
- * @url http://localhost:5000/api/users/delete/:id
+ * @swagger
+ * /auth/delete/{id}:
+ *   delete:
+ *     summary: Delete a user by ID
+ *     tags: [Auth]
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: User ID to delete
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       400:
+ *         description: Invalid user ID
  */
 router.delete(
   "/delete/:id",
   authenticateToken,
-  ctrlWrapper(async (req, res, next) => {
+  ctrlWrapper(async (req, res) => {
     const { id } = req.params;
 
     if (!ObjectId.isValid(id)) {
-      throw httpError(400, "Invalid user ID");
+      throw new httpError(400, "Invalid user ID");
     }
 
-    await deleteUser(req, res, next);
+    await deleteUser(req, res);
     res.status(200).json({ message: "User deleted successfully" });
   })
 );
 
-export { router };
+export default router;
